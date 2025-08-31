@@ -1,0 +1,8 @@
+# Example configuration for multi-wordpress-file-manager
+# Save this as config.yaml (or provide --config path)
+
+sites:
+  - name: example-site
+    root: C:/inetpub/wwwroot/example-site
+  - name: another-sites
+    root: D:/wordpress/another
