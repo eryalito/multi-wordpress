@@ -1,4 +1,4 @@
-# Example configuration for multi-wordpress-file-manager
+# Example configuration for github.com/eryalito/multi-wordpress-file-manager
 # Save this as config.yaml (or provide --config path)
 
 sites:

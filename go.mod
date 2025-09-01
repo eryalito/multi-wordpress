@@ -1,4 +1,4 @@
-module multi-wordpress-file-manager
+module github.com/eryalito/multi-wordpress-file-manager
 
 go 1.23
 

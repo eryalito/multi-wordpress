@@ -12,21 +12,12 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"gopkg.in/yaml.v3"
+
+	config "github.com/eryalito/multi-wordpress-file-manager/pkg/config"
 )
 
-// Site represents a single WordPress site managed by this app.
-type Site struct {
-	Name string `yaml:"name"`
-	Root string `yaml:"root"`
-}
-
-// Config is the root configuration structure loaded from YAML.
-type Config struct {
-	Sites []Site `yaml:"sites"`
-}
-
 // Load reads and parses the YAML configuration file at path.
-func Load(path string) (*Config, error) {
+func Load(path string) (*config.Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
@@ -34,7 +25,7 @@ func Load(path string) (*Config, error) {
 		}
 		return nil, fmt.Errorf("read config: %w", err)
 	}
-	var cfg Config
+	var cfg config.Config
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
@@ -45,7 +36,7 @@ func Load(path string) (*Config, error) {
 // target file is changed. It debounces rapid sequences of events and reloads the
 // config before invoking the callback. The callback receives either the new
 // config or an error if reload failed.
-func Watch(ctx context.Context, path string, onChange func(*Config, error)) (func() error, error) {
+func Watch(ctx context.Context, path string, onChange func(*config.Config, error)) (func() error, error) {
 	abs, err := filepath.Abs(path)
 	if err != nil {
 		return nil, fmt.Errorf("abs path: %w", err)

@@ -1,4 +1,4 @@
-# multi-wordpress-file-manager
+# github.com/eryalito/multi-wordpress-file-manager
 
 This is a simple Go project initialized with a basic Hello World example.
 

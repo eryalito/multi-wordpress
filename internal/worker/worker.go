@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	cfgpkg "multi-wordpress-file-manager/internal/config"
+	cfgpkg "github.com/eryalito/multi-wordpress-file-manager/pkg/config"
 )
 
 // WorkFunc is the function executed by the worker each cycle.

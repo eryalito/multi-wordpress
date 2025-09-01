@@ -10,9 +10,10 @@ import (
 	"syscall"
 	"time"
 
-	"multi-wordpress-file-manager/internal/config"
-	"multi-wordpress-file-manager/internal/lock"
-	"multi-wordpress-file-manager/internal/worker"
+	internalCfg "github.com/eryalito/multi-wordpress-file-manager/internal/config"
+	"github.com/eryalito/multi-wordpress-file-manager/internal/lock"
+	"github.com/eryalito/multi-wordpress-file-manager/internal/worker"
+	publicCfg "github.com/eryalito/multi-wordpress-file-manager/pkg/config"
 )
 
 func parseFlags() (cfgPath string, lockPath string, member string, lockTimeout *time.Duration, interval *time.Duration) {
@@ -59,8 +60,8 @@ func acquireLock(ctx context.Context, cfgPath, lockPath, member string, lockTime
 	return ctx, cleanup, nil
 }
 
-func loadInitialConfig(cfgPath string) *config.Config {
-	cfg, err := config.Load(cfgPath)
+func loadInitialConfig(cfgPath string) *publicCfg.Config {
+	cfg, err := internalCfg.Load(cfgPath)
 	if err != nil {
 		log.Printf("config load: %v", err)
 		return nil
@@ -69,14 +70,14 @@ func loadInitialConfig(cfgPath string) *config.Config {
 	return cfg
 }
 
-func startWorker(ctx context.Context, currentCfg func() *config.Config, interval *time.Duration) *worker.Worker {
+func startWorker(ctx context.Context, currentCfg func() *publicCfg.Config, interval *time.Duration) *worker.Worker {
 	w := worker.New(worker.Handle, currentCfg, *interval, log.Printf)
 	go w.Start(ctx)
 	return w
 }
 
-func startWatcher(ctx context.Context, cfgPath string, onReload func(*config.Config)) error {
-	_, err := config.Watch(ctx, cfgPath, func(cfg *config.Config, err error) {
+func startWatcher(ctx context.Context, cfgPath string, onReload func(*publicCfg.Config)) error {
+	_, err := internalCfg.Watch(ctx, cfgPath, func(cfg *publicCfg.Config, err error) {
 		if err != nil {
 			log.Printf("config reload error: %v", err)
 			return
@@ -99,12 +100,12 @@ func main() {
 		defer cleanup()
 	}
 
-	var currentCfg *config.Config
+	var currentCfg *publicCfg.Config
 	currentCfg = loadInitialConfig(cfgPath)
 
-	w := startWorker(ctx, func() *config.Config { return currentCfg }, interval)
+	w := startWorker(ctx, func() *publicCfg.Config { return currentCfg }, interval)
 
-	if err := startWatcher(ctx, cfgPath, func(c *config.Config) {
+	if err := startWatcher(ctx, cfgPath, func(c *publicCfg.Config) {
 		currentCfg = c
 		w.Trigger()
 	}); err != nil {
