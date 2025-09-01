@@ -6,19 +6,36 @@ var (
 	ProxyTypeApache ProxyType = "apache"
 )
 
-// Site represents a single WordPress site managed by this app.
-type Site struct {
-	Name       string `yaml:"name"`
-	DomainName string `yaml:"domain_name"`
-	Root       string `yaml:"root"`
-}
-
 type Proxy struct {
 	Type ProxyType `yaml:"type"` // e.g. "apache"
 }
 
-// Config is the root configuration structure loaded from YAML.
+type Database struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	Name     string `yaml:"name"`
+}
+
+type Wordpress struct {
+	AdminUser     string   `yaml:"admin_user"`
+	AdminPassword string   `yaml:"admin_password"`
+	Database      Database `yaml:"database"`
+}
+
+type WordpressGlobal struct {
+	ZipURL   string `yaml:"zip_url"`
+	BasePath string `yaml:"base_path"`
+}
+
+type Site struct {
+	DomainName string    `yaml:"domain_name"`
+	Wordpress  Wordpress `yaml:"wordpress"`
+}
+
 type Config struct {
-	Sites []Site `yaml:"sites"`
-	Proxy Proxy  `yaml:"proxy"`
+	Sites           []Site          `yaml:"sites"`
+	Proxy           Proxy           `yaml:"proxy"`
+	WordpressGlobal WordpressGlobal `yaml:"wordpress_global"`
 }

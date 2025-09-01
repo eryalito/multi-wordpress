@@ -1,8 +1,28 @@
-# Example configuration for github.com/eryalito/multi-wordpress-file-manager
-# Save this as config.yaml (or provide --config path)
+proxy:
+  type: "apache"
+
+wordpress_global:
+  zip_url: "https://wordpress.org/latest.zip"
+  base_path: "/tmp/var/www/html"
 
 sites:
-  - name: example-site
-    root: C:/inetpub/wwwroot/example-site
-  - name: another-sites
-    root: D:/wordpress/another
+  - domain_name: "site1.example.com"
+    wordpress:
+      admin_user: "admin"
+      admin_password: "password123"
+      database:
+        host: "localhost"
+        port: 3306
+        user: "wp_user"
+        password: "wp_pass"
+        name: "wordpress_db"
+  - domain_name: "site2.example.com"
+    wordpress:
+      admin_user: "admin2"
+      admin_password: "password456"
+      database:
+        host: "db.example.com"
+        port: 3306
+        user: "wp_user2"
+        password: "wp_pass2"
+        name: "wordpress_db2"
