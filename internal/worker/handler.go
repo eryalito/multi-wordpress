@@ -177,6 +177,8 @@ func createWPConfig(dest string, wpConfig cfgpkg.Wordpress) error {
 func writeWPConfig(dest string, wpConfig cfgpkg.Wordpress, salts string) error {
 	wpConfigPath := filepath.Join(dest, "wp-config.php")
 	configContent := fmt.Sprintf(`<?php
+%s
+
 define( 'DB_NAME', '%s' );
 define( 'DB_USER', '%s' );
 define( 'DB_PASSWORD', '%s' );
@@ -195,9 +197,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once ABSPATH . 'wp-settings.php';
-`, wpConfig.Database.Name, wpConfig.Database.User, wpConfig.Database.Password, fmt.Sprintf("%s:%d", wpConfig.Database.Host, wpConfig.Database.Port), salts)
+`, getForceHTTPSSetting(wpConfig.ForceHTTPS), wpConfig.Database.Name, wpConfig.Database.User, wpConfig.Database.Password, fmt.Sprintf("%s:%d", wpConfig.Database.Host, wpConfig.Database.Port), salts)
 
 	return os.WriteFile(wpConfigPath, []byte(configContent), 0644)
+}
+
+func getForceHTTPSSetting(forceHTTPS *bool) string {
+	if forceHTTPS != nil && *forceHTTPS {
+		return `
+$_SERVER['HTTPS'] = 'on';
+$_SERVER['SERVER_PORT'] = 443;
+`
+	}
+	return ""
 }
 
 // getSalts fetches unique keys and salts from the WordPress.org API.

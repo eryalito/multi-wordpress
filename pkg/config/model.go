@@ -19,9 +19,8 @@ type Database struct {
 }
 
 type Wordpress struct {
-	AdminUser     string   `yaml:"admin_user"`
-	AdminPassword string   `yaml:"admin_password"`
-	Database      Database `yaml:"database"`
+	Database   Database `yaml:"database"`
+	ForceHTTPS *bool    `yaml:"force_https"`
 }
 
 type WordpressGlobal struct {

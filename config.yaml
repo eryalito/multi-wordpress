@@ -8,8 +8,7 @@ wordpress_global:
 sites:
   - domain_name: "site1.example.com"
     wordpress:
-      admin_user: "admin"
-      admin_password: "password123"
+      force_https: true
       database:
         host: "db1"
         port: 3306
@@ -18,8 +17,6 @@ sites:
         name: "wordpress_db"
   - domain_name: "site2.example.com"
     wordpress:
-      admin_user: "admin2"
-      admin_password: "password456"
       database:
         host: "db2"
         port: 3306
@@ -28,8 +25,6 @@ sites:
         name: "wordpress_db2"
   - domain_name: "site3.example.com"
     wordpress:
-      admin_user: "admin3"
-      admin_password: "password456"
       database:
         host: "db2"
         port: 3306
