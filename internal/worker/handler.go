@@ -12,6 +12,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/eryalito/multi-wordpress-file-manager/internal/proxy"
+	"github.com/eryalito/multi-wordpress-file-manager/internal/proxy/apache"
 	cfgpkg "github.com/eryalito/multi-wordpress-file-manager/pkg/config"
 )
 
@@ -43,6 +45,14 @@ func Handle(ctx context.Context, cfg *cfgpkg.Config) error {
 		return fmt.Errorf("worker: failed to create base path directory %s: %w", cfg.WordpressGlobal.BasePath, err)
 	}
 
+	var proxyManager proxy.Manager
+	switch cfg.Proxy.Type {
+	case cfgpkg.ProxyTypeApache:
+		proxyManager = &apache.ApacheManager{}
+	default:
+		return fmt.Errorf("unsupported proxy type: %s", cfg.Proxy.Type)
+	}
+
 	for _, site := range cfg.Sites {
 		sitePath := filepath.Join(cfg.WordpressGlobal.BasePath, site.DomainName)
 		log.Printf("worker: processing site %s at path %s", site.DomainName, sitePath)
@@ -67,6 +77,15 @@ func Handle(ctx context.Context, cfg *cfgpkg.Config) error {
 		if err := ensureWPConfig(sitePath, site); err != nil {
 			return fmt.Errorf("worker: failed to ensure wp-config.php for site %s: %w", site.DomainName, err)
 		}
+
+		// Configure and enable proxy
+		if err := proxyManager.Configure(site, sitePath); err != nil {
+			return fmt.Errorf("worker: failed to configure proxy for site %s: %w", site.DomainName, err)
+		}
+		if err := proxyManager.Enable(site); err != nil {
+			return fmt.Errorf("worker: failed to enable proxy for site %s: %w", site.DomainName, err)
+		}
+		log.Printf("worker: successfully configured and enabled proxy for site %s", site.DomainName)
 	}
 
 	log.Println("worker: finished wordpress deployment check")

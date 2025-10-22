@@ -3,7 +3,7 @@ proxy:
 
 wordpress_global:
   zip_url: "https://wordpress.org/latest.zip"
-  base_path: "/tmp/var/www/html"
+  base_path: "/var/www/html"
 
 sites:
   - domain_name: "site1.example.com"
@@ -11,7 +11,7 @@ sites:
       admin_user: "admin"
       admin_password: "password123"
       database:
-        host: "localhost"
+        host: "db1"
         port: 3306
         user: "wp_user"
         password: "wp_pass"
@@ -21,8 +21,18 @@ sites:
       admin_user: "admin2"
       admin_password: "password456"
       database:
-        host: "db.example.com"
+        host: "db2"
         port: 3306
         user: "wp_user2"
         password: "wp_pass2"
         name: "wordpress_db2"
+  - domain_name: "site3.example.com"
+    wordpress:
+      admin_user: "admin3"
+      admin_password: "password456"
+      database:
+        host: "db2"
+        port: 3306
+        user: "wp_user3"
+        password: "wp_pass3"
+        name: "wordpress_db3"
