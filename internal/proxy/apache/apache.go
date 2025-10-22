@@ -13,7 +13,7 @@ type ApacheManager struct{}
 // Configure creates a virtual host configuration file for a site.
 func (m *ApacheManager) Configure(site cfg.Site, sitePath string) error {
 	vhostConfig := fmt.Sprintf(`
-<VirtualHost *:80>
+<VirtualHost *>
     ServerName %s
     DocumentRoot %s
 

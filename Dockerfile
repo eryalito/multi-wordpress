@@ -26,10 +26,13 @@ RUN rm -rf /var/www/html && rm -rf /etc/apache2/sites-enabled \
     && mkdir -p /etc/apache2/sites-enabled \
     && mkdir -p /var/www/html \
     && mkdir -p /var/www/empty \
-    && chown -R www-data:www-data /var/www/html
+    && sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
+    && chown -R www-data:www-data /var/www/html /var/log/apache2 /var/run/apache2 /etc/apache2
     
 COPY apache-default.conf /etc/apache2/sites-available/000-default.conf
 
 RUN ln -s /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-enabled/000-default.conf
+
+USER www-data
 
 CMD ["reload_apache.sh"]
