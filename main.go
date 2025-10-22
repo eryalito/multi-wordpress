@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -100,13 +101,20 @@ func main() {
 		defer cleanup()
 	}
 
-	var currentCfg *publicCfg.Config
-	currentCfg = loadInitialConfig(cfgPath)
+	var cfgVal atomic.Value
+	cfg := loadInitialConfig(cfgPath)
+	cfgVal.Store(cfg)
 
-	w := startWorker(ctx, func() *publicCfg.Config { return currentCfg }, interval)
+	w := startWorker(ctx, func() *publicCfg.Config {
+		v := cfgVal.Load()
+		if v == nil {
+			return nil
+		}
+		return v.(*publicCfg.Config)
+	}, interval)
 
 	if err := startWatcher(ctx, cfgPath, func(c *publicCfg.Config) {
-		currentCfg = c
+		cfgVal.Store(c)
 		w.Trigger()
 	}); err != nil {
 		log.Fatalf("watch start: %v", err)
