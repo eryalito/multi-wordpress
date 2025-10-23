@@ -11,8 +11,7 @@ FROM ubuntu:24.04
 
 RUN apt update && apt upgrade -y && apt install -y apache2 wget php libapache2-mod-php php-mysql php-curl php-gd php-mbstring php-xml php-xmlrpc php-soap php-intl php-zip inotify-tools nano \
     && apt clean && rm -rf /var/lib/apt/lists/*
-
-ENV PATH="/usr/local/go/bin:${PATH}"
+RUN a2enmod rewrite
 
 COPY --from=builder /app/mwpfm /usr/local/bin/mwpfm
 
