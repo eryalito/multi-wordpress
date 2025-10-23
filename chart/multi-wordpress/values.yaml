@@ -1,0 +1,153 @@
+# Default values for multi-wordpress.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+replicaCount: 1
+
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  repository: ghcr.io/eryalito/multi-wordpress
+  # This sets the pull policy for images.
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+# This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# This is for setting Kubernetes Annotations to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+podAnnotations: {}
+# This is for setting Kubernetes Labels to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 33
+
+
+# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+service:
+  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: ClusterIP
+  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+  port: 80
+
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+
+# Additional volumes on the output Deployment definition.
+volumes: []
+# - name: foo
+#   secret:
+#     secretName: mysecret
+#     optional: false
+
+containers:
+  apache:
+    volumeMounts: []
+    # - name: foo
+    #   mountPath: /etc/foo
+    securityContext: {}
+      # capabilities:
+      #   drop:
+      #   - ALL
+      # readOnlyRootFilesystem: true
+      # runAsNonRoot: true
+      # runAsUser: 1000
+    # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+    livenessProbe: {}
+    readinessProbe: {}
+  config_reloader:
+    # Interval for the config reloader worker (e.g., "12h", "30m")
+    interval: "12h"
+    volumeMounts: []
+    # - name: foo
+    #   mountPath: /etc/foo
+    securityContext: {}
+      # capabilities:
+      #   drop:
+      #   - ALL
+      # readOnlyRootFilesystem: true
+      # runAsNonRoot: true
+      # runAsUser: 1000
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+blockDefault: true
+
+storage:
+  enabled: true
+  class: "standard"
+  size: "1Gi"
+
+ingress:
+  enabled: true
+  hosts:
+    - host: site1.example.com
+      paths:
+        - /
+    - host: site2.example.com
+      paths:
+        - /
+
+config:
+  proxy:
+    type: "apache"
+
+  wordpress_global:
+    zip_url: "https://wordpress.org/latest.zip"
+    base_path: "/var/www/html"
+
+  sites:
+    - domain_name: "site1.example.com"
+      wordpress:
+        admin_user: "admin"
+        admin_password: "password123"
+        database:
+          host: "db1"
+          port: 3306
+          user: "wp_user"
+          password: "wp_pass"
+          name: "wordpress_db"
+    - domain_name: "site2.example.com"
+      wordpress:
+        admin_user: "admin2"
+        admin_password: "password456"
+        database:
+          host: "db2"
+          port: 3306
+          user: "wp_user2"
+          password: "wp_pass2"
+          name: "wordpress_db2"

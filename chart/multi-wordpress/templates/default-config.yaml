@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "multi-wordpress.fullname" . }}-default-config
+data:
+  default-config.conf: |-
+    <VirtualHost *>
+      ServerName default
+      DocumentRoot /var/www/empty
+
+      # Deny all access
+      <Directory /var/www/empty>
+          Require all denied
+      </Directory>
+
+      # Return 403 for all requests
+      ErrorDocument 403 "Forbidden: This domain is not configured on this server."
+    </VirtualHost>

@@ -1,0 +1,161 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "multi-wordpress.fullname" . }}
+  labels:
+    {{- include "multi-wordpress.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "multi-wordpress.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "multi-wordpress.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "multi-wordpress.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        # apache container
+        - name: apache
+          {{- with .Values.containers.apache.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          {{- with .Values.containers.apache.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.containers.apache.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.containers.apache.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: wordpress-storage
+              mountPath: "/var/www/html"
+              readOnly: false
+            - name: apache-config-se
+              mountPath: /etc/apache2/sites-enabled
+            - name: apache-config-sa
+              mountPath: /etc/apache2/sites-available
+            {{- if .Values.blockDefault }}
+            - name: default-config
+              mountPath: /etc/apache2/sites-enabled/000-default.conf
+              subPath: default-config.conf
+            {{- end }}
+          {{- with .Values.containers.apache.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          # config_reloader container
+        - name: config-reloader
+          command: ["/bin/sh", "-c"]
+          args: 
+            - |
+              mkdir -p /etc/apache2/sites-available
+              mkdir -p /etc/apache2/sites-enabled
+              mwpfm -config /config/config.yaml -lock /emptydir/config.lock -interval {{ .Values.containers.config_reloader.interval }}
+          {{- with .Values.containers.config_reloader.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.containers.config_reloader.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.containers.config_reloader.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.containers.config_reloader.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config
+            - name: emptydir-volume
+              mountPath: /emptydir
+            - name: tmp
+              mountPath: /tmp
+            - name: apache-config-se
+              mountPath: /etc/apache2/sites-enabled
+            - name: apache-config-sa
+              mountPath: /etc/apache2/sites-available
+            - name: wordpress-storage
+              mountPath: "/var/www/html"
+              readOnly: false
+              
+            {{- with .Values.containers.config_reloader.volumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: {{ include "multi-wordpress.fullname" . }}-secret
+            items:
+              - key: config.yaml
+                path: config.yaml
+        - name: emptydir-volume
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: apache-config-se
+          emptyDir: {}
+        - name: apache-config-sa
+          emptyDir: {}
+        {{- if .Values.blockDefault }}
+        - name: default-config
+          configMap:
+            name: {{ include "multi-wordpress.fullname" . }}-default-config
+        {{- end }}
+        - name: wordpress-storage
+        {{- if .Values.storage.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "multi-wordpress.fullname" . }}-pvc
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+        {{- with .Values.volumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
