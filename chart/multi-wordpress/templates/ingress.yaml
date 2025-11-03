@@ -13,6 +13,14 @@ metadata:
   {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.class }}
+  {{- if .Values.ingress.tls }}
+  tls:
+    - hosts:
+        {{- range .Values.ingress.hosts }}
+        - {{ .host }}
+        {{- end }}
+      secretName: {{ include "multi-wordpress.fullname" . }}-tls
+  {{- end }}
   rules:
     {{- range .Values.ingress.hosts }}
     - host: {{ .host }}

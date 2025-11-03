@@ -114,6 +114,7 @@ storage:
 
 ingress:
   enabled: true
+  tls: false
   hosts:
     - host: site1.example.com
       paths:
